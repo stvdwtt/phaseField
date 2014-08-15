@@ -26,6 +26,8 @@ public:
 };
 
 //Structural order parameter initial conditions
+std::vector<std::vector<Point<problemDIM>*> > nucleiPositions(numStructuralOrderParameters);
+
 template <int dim>
 class InitialConditionN : public Function<dim>
 {
@@ -34,6 +36,27 @@ public:
   InitialConditionN (const unsigned int _index) : Function<dim>(1), index(_index) 
   {
     std::srand(Utilities::MPI::this_mpi_process(MPI_COMM_WORLD)+1);
+    //
+    for (unsigned int i=0; i<numNuclei; i++){
+      unsigned int count=0;
+      while(count<1000){
+	count++;
+	double x=spanX*(0.15+(double)(std::rand() % 70 )/100.0);
+	double y=spanY*(0.15+(double)(std::rand() % 70 )/100.0);
+	Point<dim> p(x,y);
+	bool addNuclei=true;
+	for (unsigned int k=0; k<numStructuralOrderParameters; k++)
+	  if (nucleiPositions[k].size()>0)
+	    for (unsigned int j=0; j<nucleiPositions[k].size(); j++)
+	      if (p.distance(*nucleiPositions[k].at(j))<minNucleiDistance) addNuclei=false;
+	if (addNuclei) {
+	  nucleiPositions[index].push_back(new Point<dim>(p[0],p[1]));
+	  if (Utilities::MPI::this_mpi_process(MPI_COMM_WORLD)==0)
+	    printf("added nuclei of type %u at (%7.2f,%7.2f)\n",index, p[0], p[1]);
+	  break;
+	}
+      }
+    }
   }
   virtual double value (const Point<dim> &p, const unsigned int component = 0) const;
 };
@@ -365,7 +388,7 @@ void PrecipitateProblem<dim>::cgSolve(vectorType &x, const vectorType &b){
   char buffer[250];
   Timer time; double t=0, t1;
   double rtol=1.0e-10, rtolAbs=1.0e-15, utol=1.0e-10;
-  unsigned int maxIterations=1000, iterations=0;
+  unsigned int maxIterations=200, iterations=0;
   double res, res0, resOld;
   if (!x.all_zero()){
     //R=Ax-b
@@ -421,7 +444,7 @@ void PrecipitateProblem<dim>::solve ()
     for (unsigned int j=0; j<N[i].local_size(); ++j)
       N[i].local_element(j)+=invM.local_element(j)*dt*residualN[i].local_element(j);
   //compute u
-  if (increment%100==0) cgSolve(U,residualU); 
+  if (increment%1000==0) cgSolve(U,residualU); 
   pcout << "solve wall time: " << time.wall_time() << "s\n";
 }
   

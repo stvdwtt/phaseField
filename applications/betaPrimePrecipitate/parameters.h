@@ -7,11 +7,11 @@
 #define spanZ 100.0
 
 //define mesh parameters
-#define refineFactor 8
+#define refineFactor 9
 #define finiteElementDegree 1
 
 //define time step parameters
-#define dt 1.0e-3
+#define dt 2.0e-4
 #define numIncrements 200000
 
 //define results output parameters
@@ -21,6 +21,11 @@
 //define general physics parameters
 #define numStructuralOrderParameters 3
 
+//define nucleation paramters
+#define numNuclei 4
+#define minNucleiDistance (spanX/6)
+#define nucleiRadius (spanX/40.0)
+ 
 //define Cahn-Hilliard parameters (No Gradient energy)
 #define Mc 1.0
 
