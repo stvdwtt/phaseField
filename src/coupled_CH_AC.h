@@ -11,7 +11,7 @@ typedef dealii::parallel::distributed::Vector<double> vectorType;
 using namespace dealii;
 
 //initial condition functions
-//Concentration initial conditions
+//concentration initial conditions
 template <int dim>
 class InitialConditionC : public Function<dim>
 {
@@ -22,7 +22,7 @@ public:
   virtual double value (const Point<dim> &p, const unsigned int component = 0) const;
 };
 
-//Structural order parameter initial conditions
+//structural order parameter initial conditions
 template <int dim>
 class InitialConditionN : public Function<dim>
 {
@@ -33,6 +33,35 @@ public:
   }
   virtual double value (const Point<dim> &p, const unsigned int component = 0) const;
 };
+
+//base implementation for a nucleation model 
+template<int dim>
+class nucleationCondition
+{
+  std::map<types::global_dof_index, Point<dim> > support_points;
+ public:
+  nucleationCondition(){}
+  void init(const DoFHandler<dim>& dof_handler){
+    DoFTools::map_dofs_to_support_points (MappingQ1<dim>(), dof_handler, support_points);   	
+  }
+  void setValues(vectorType& U, const double t); 
+  virtual void value(Point<dim>& p, const double t, double& val, bool& isSet);
+};
+
+template<int dim>
+void nucleationCondition<dim>::setValues(vectorType& U, const double t){
+  double val=0.0; bool isSet=false;
+  for (typename std::map<types::global_dof_index, Point<dim> >::iterator it=support_points.begin(); it!=support_points.end(); ++it){
+    unsigned int dof=it->first;
+    //set only local owned values of the parallel vector
+    if (U.locally_owned_elements().is_element(dof)){
+      value(it->second, t, val, isSet);
+      if(isSet){
+	U(dof)=val;
+      }
+    }
+  }
+}
 
 //
 //CH+AC class
@@ -58,7 +87,7 @@ private:
   double                           setup_time;
   unsigned int                     increment;
   ConditionalOStream               pcout;
-
+  nucleationCondition<dim>         nucleationConditionObject;
   //matrix free objects
   MatrixFree<dim,double>      data;
   vectorType invM;
@@ -135,7 +164,7 @@ void CoupledCHACProblem<dim>::computeRHS (const MatrixFree<dim,double>  &data,
   }
   //release memory
   for (unsigned int i=0; i<numStructuralOrderParameters+1; i++){
-   delete[]  vals[i];
+    delete  vals[i];
   }
 }
 
@@ -221,7 +250,10 @@ void CoupledCHACProblem<dim>::setup_system ()
   for (unsigned int i=0; i<numStructuralOrderParameters; i++){
     VectorTools::interpolate (dof_handler,InitialConditionN<dim> (i),N[i]);
   }
-  
+
+  //initialize nucleation model
+  nucleationConditionObject.init(dof_handler);
+
   //timing
   setup_time += time.wall_time();
   pcout << "Wall time for matrix-free setup:    "
@@ -233,6 +265,9 @@ template <int dim>
 void CoupledCHACProblem<dim>::solve ()
 {
   Timer time; 
+  //check and set nucleation values for the first order parameter
+  nucleationConditionObject.setValues(N[0],dt*increment);
+
   //compute n0-mobility*dt*f'(n0)
   updateRHS();
   double rhsCNorm=0.0, rhsNNorm=0.0;

@@ -16,13 +16,13 @@
 
 //define results output parameters
 #define writeOutput true
-#define skipOutputSteps 1000
+#define skipOutputSteps 100
 
 //define general physics parameters
 #define numStructuralOrderParameters 1
 
 //define Cahn-Hilliard parameters (No Gradient energy)
-#define Mc 1.0
+#define Mc 10.0
 
 //define Allen-Cahn parameters
 #define MnVals {1.0}
