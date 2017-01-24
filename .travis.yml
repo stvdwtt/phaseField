@@ -7,9 +7,7 @@ services:
   
 before_install:
   - docker pull dealii/dealii:v8.4.2-gcc-mpi-fulldepsmanual-release
-  - docker run -t dealii/dealii:v8.4.2-gcc-mpi-fulldepsmanual-release
-  - git clone https://github.com/prisms-center/phaseField.git
-  - cd applications
+  - docker run -t dealii/dealii:v8.4.2-gcc-mpi-fulldepsmanual-release /test_ci.sh
   
 
 script: bash test_ci.sh
