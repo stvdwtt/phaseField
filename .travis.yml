@@ -7,7 +7,7 @@ services:
   
 before_install:
   - docker pull dealii/dealii:v8.4.2-gcc-mpi-fulldepsmanual-release
-  - docker run -it dealii/dealii:v8.4.2-gcc-mpi-fulldepsmanual-release /bin/bash
+  - docker run -t dealii/dealii:v8.4.2-gcc-mpi-fulldepsmanual-release
   
 
 script: bash test_ci.sh
