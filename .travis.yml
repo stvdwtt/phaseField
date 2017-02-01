@@ -6,7 +6,9 @@ services:
   - docker
   
 before_install:
-  - docker pull stvdwtt/prisms_pf
-  - docker run -i -t stvdwtt/prisms_pf
+  #- docker pull stvdwtt/prisms_pf
+  #- docker run -i -t stvdwtt/prisms_pf
+  - docker pull dealii/dealii:v8.4.2-clang-mpi-fulldepsmanual-debugrelease
+  - docker run dealii/dealii:v8.4.2-clang-mpi-fulldepsmanual-debugrelease /bin/sh -c "ls; pwd; echo $TRAVIS_BRANCH"
 
 script: bash test_ci.sh
