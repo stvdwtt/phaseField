@@ -9,6 +9,6 @@ before_install:
   #- docker pull stvdwtt/prisms_pf
   #- docker run -i -t stvdwtt/prisms_pf
   - docker pull dealii/dealii:v8.4.2-gcc-mpi-fulldepsmanual-debugrelease
-  - docker run dealii/dealii:v8.4.2-gcc-mpi-fulldepsmanual-debugrelease /bin/sh -c "git clone -b auto_r_test https://github.com/prisms-center/phaseField; cd tests/automatic_regressions_test; python run_auto_regression_test.py"
+  - docker run dealii/dealii:v8.4.2-gcc-mpi-fulldepsmanual-debugrelease /bin/sh -c "git clone -b auto_r_test https://github.com/prisms-center/phaseField; cd phaseField/tests/automatic_regressions_test; python run_auto_regression_test.py"
 
 script: bash test_ci.sh
