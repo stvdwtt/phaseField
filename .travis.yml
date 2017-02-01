@@ -7,7 +7,6 @@ services:
   
 before_install:
   - docker pull stvdwtt/prisms_pf
-  - docker build --no-cache=true -t stvdwtt/prism_pf .
   - docker run -i -t stvdwtt/prisms_pf
 
 script: bash test_ci.sh
