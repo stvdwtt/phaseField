@@ -95,6 +95,7 @@ class MatrixFreePDE:public Subscriptor
    * inputs in the application parameters file. 
    */
   void init  (unsigned int iter=0);
+  void reinit  (unsigned int iter=0);
    /**
    * Initializes the data structures for enabling unit tests.
    * 
@@ -186,7 +187,7 @@ class MatrixFreePDE:public Subscriptor
   /*Vector to store the inverse of the mass matrix diagonal. Due to the choice of spectral elements with Guass-Lobatto quadrature, the mass matrix is diagonal.*/
   vectorType                           invM;
   /*Vector to store the solution increment. This is a temporary vector used during implicit solves of the Elliptic fields.*/
-  vectorType                           dU;
+  vectorType                           dU_vector, dU_scalar;
   
   //matrix free methods
   /*Current field index*/
@@ -280,6 +281,7 @@ class MatrixFreePDE:public Subscriptor
 //header files till library packaging scheme is finalized)
 #include "../src/matrixfree/matrixFreePDE.cc"
 #include "../src/matrixfree/init.cc"
+#include "../src/matrixfree/reinit.cc"
 #include "../src/matrixfree/initForTests.cc"
 #include "../src/matrixfree/refine.cc"
 #include "../src/matrixfree/invM.cc"

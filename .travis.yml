@@ -2,24 +2,13 @@ sudo: required
 dist: trusty
 language: cpp
 
-cache:
-  bundler: true
-  directories:
-    - dealii
-    - build
-
-before_install:
-  - sudo apt-get install libcr-dev mpich2 mpich2-doc
-  - sudo apt-get install p4est
-#  - test -n $CC  && unset CC
-#  - test -n $CXX && unset CXX
+services: 
+  - docker
   
-#install:
-#  - git clone https://github.com/dealii/dealii
-#  - mkdir build
-#  - cd build
-#  - cmake -DCMAKE_INSTALL_PREFIX=. ../dealii
-#  - make -j2 install
-#  - make test
+before_install:
+  #- docker pull stvdwtt/prisms_pf
+  #- docker run -i -t stvdwtt/prisms_pf
+  - docker pull dealii/dealii:v8.4.2-gcc-mpi-fulldepsmanual-debugrelease
+  - docker run dealii/dealii:v8.4.2-gcc-mpi-fulldepsmanual-debugrelease /bin/sh -c "git clone -b auto_r_test https://github.com/prisms-center/phaseField; python phaseField/tests/automatic_regression_test/run_auto_regression_tests.py"
 
 script: bash test_ci.sh
