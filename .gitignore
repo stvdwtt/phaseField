@@ -32,6 +32,7 @@
 *.#
 *.btr
 freeEnergy.txt
+integratedFields.txt
 
 #CMAKE files
 *.cmake
@@ -77,3 +78,4 @@ DoxygenWarningLog.txt
 *.cproject
 *.DS_Store
 freeEnergy.txt
+output.txt

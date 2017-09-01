@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['energydensity',['energyDensity',['../classgeneralized_problem.html#ada41b86d9184b78b29db24b8bf8c6b59',1,'generalizedProblem']]]
+  ['declare_5fparameters',['declare_parameters',['../classinput_file_reader.html#a5a0f9c21ade62915b4902942c0df14e5',1,'inputFileReader']]]
 ];

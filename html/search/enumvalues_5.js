@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['scalar',['SCALAR',['../fields_8h.html#ae2c3e99c22ce037f68e9b19bfd9c6de2a7efbb6cac96595e63e8fa171bde1eb68',1,'fields.h']]]
+  ['orthotropic',['ORTHOTROPIC',['../user_input_parameters_8h.html#abb3de18236e38998c9ebe938a8791ab3aa5620c2c840f7a0ec7fd602363ea904d',1,'userInputParameters.h']]]
 ];

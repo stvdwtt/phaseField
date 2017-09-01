@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['outputresults_5fmatrixfree_5fh',['OUTPUTRESULTS_MATRIXFREE_H',['../output_results_8cc.html#a509246d442f947475a198d2c5e0a7323',1,'outputResults.cc']]]
+  ['writeoutput',['writeOutput',['../__cahn_hilliard_with_adaptivity_2parameters_8h.html#a0e0c9d336389e97f2526f080cf895055',1,'parameters.h']]]
 ];
