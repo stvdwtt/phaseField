@@ -1,8 +1,8 @@
 ---
 layout: default
 ---
+[![PRISMS-PF Logo](assets/prismspf_logo.png)](https://stvdwtt.github.io/phaseField/)
 
-![]({{ BASE_PATH }}/assets/prismspf_logo.png)
 
 ## Overview
 ***
@@ -33,6 +33,7 @@ This code is developed by the PRedictive Integrated Structural Materials Science
 
 ## The PRISMS-PF Tutorial
 ***
+[Go to the PRISMS-PF tutorial.](pages/tutorial.html)
 
 ## Training Problem Sets
 ***
@@ -42,3 +43,4 @@ This code is developed by the PRedictive Integrated Structural Materials Science
 
 ## Doxygen Documentation
 ***
+[Go to the Doxygen documentation (hosted on this repo, unlike the link above).](doxygen_files/index.html)
