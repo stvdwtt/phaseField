@@ -7,9 +7,9 @@ set Number of dimensions = 3
 # Set the length of the domain in all three dimensions
 # =================================================================================
 # Each axes spans from zero to the specified length
-set Domain size X = 128
-set Domain size Y = 128
-set Domain size Z = 128
+set Domain size X = 256
+set Domain size Y = 256
+set Domain size Z = 256
 
 # =================================================================================
 # Set the element parameters
@@ -101,16 +101,6 @@ set Boundary condition for variable dummy = NATURAL
 # =================================================================================
 # Type options currently are double, int, bool, and tensor
 
-set Model constant semiaxes = (10.0, 10.0, 20.0), tensor
-
-set Model constant center = (0, 0, 0), tensor
-
-set Model constant sfts = ((0.06,0.0,0),(0.0,0.06,0),(0,0,0.01)), tensor
-
-#set Model constant CIJ_matrix = (281.2096774193549,0.2782258064516129), isotropic elastic constants
-#set Model constant CIJ_ppt = (315.8832116788321,0.2737226277372263), isotropic elastic constants
-
-set Model constant CIJ_matrix = (190,190,190,110,110,110,138,138,138), orthotropic elastic constants
-set Model constant CIJ_ppt = (210,210,210,124,124,124,150,150,150), orthotropic elastic constants
-
-set Model constant refine_rad = 30, double
+set Model constant CIJ = (166.2229,0.4086687306501548), isotropic elastic constants
+set Model constant rad = 20, double
+set Model constant refine_rad = 40, double

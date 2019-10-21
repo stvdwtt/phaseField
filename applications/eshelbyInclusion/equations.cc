@@ -15,14 +15,21 @@
 
 void variableAttributeLoader::loadVariableAttributes(){
 	// Variable 0
-	set_variable_name				(0,"u");
-	set_variable_type				(0,VECTOR);
-	set_variable_equation_type		(0,TIME_INDEPENDENT);
+	set_variable_name				(0,"dummy");
+	set_variable_type				(0,SCALAR);
+	set_variable_equation_type		(0,EXPLICIT_TIME_DEPENDENT);
 
-    set_dependencies_value_term_RHS(0, "");
-    set_dependencies_gradient_term_RHS(0, "grad(u)");
-    set_dependencies_value_term_LHS(0, "");
-    set_dependencies_gradient_term_LHS(0, "grad(change(u))");
+    set_dependencies_value_term_RHS(0, "dummy");
+    set_dependencies_gradient_term_RHS(0, "");
+
+		set_variable_name				(1,"u");
+		set_variable_type				(1,VECTOR);
+		set_variable_equation_type		(1,TIME_INDEPENDENT);
+
+			set_dependencies_value_term_RHS(1, "");
+			set_dependencies_gradient_term_RHS(1, "grad(u)");
+			set_dependencies_value_term_LHS(1, "");
+			set_dependencies_gradient_term_LHS(1, "grad(change(u))");
 
 }
 
@@ -40,6 +47,29 @@ void variableAttributeLoader::loadVariableAttributes(){
 template <int dim, int degree>
 void customPDE<dim,degree>::explicitEquationRHS(variableContainer<dim,degree,dealii::VectorizedArray<double> > & variable_list,
 				 dealii::Point<dim, dealii::VectorizedArray<double> > q_point_loc) const {
+
+scalarvalueType dummy = variable_list.get_scalar_value(0);
+
+scalarvalueType dist, phi;
+
+
+// Scaled distance from the center of the inclusion
+dist = std::sqrt((q_point_loc[0]-constV(center[0]))*(q_point_loc[0]-constV(center[0]))/semiaxes[0]/semiaxes[0]
+					+(q_point_loc[1]-constV(center[1]))*(q_point_loc[1]-constV(center[1]))/semiaxes[1]/semiaxes[1]
+					+(q_point_loc[2]-constV(center[2]))*(q_point_loc[2]-constV(center[2]))/semiaxes[2]/semiaxes[2]);
+
+//phi = (0.5- 0.5*(1.0-std::exp(-20.0*(dist-constV(1.0))))/ (constV(1.0)+std::exp(-20.0*(dist-constV(1.0)))));
+
+for (unsigned int n=0; n < dist.n_array_elements; n++){
+	if (dist[n] < 1.0){
+		phi[n] = 1.0;
+	}
+	else{
+		phi[n] = 0.0;
+	}
+}
+
+variable_list.set_scalar_value_term_RHS(0, phi);
 
 }
 
@@ -62,49 +92,41 @@ void customPDE<dim,degree>::nonExplicitEquationRHS(variableContainer<dim,degree,
 // --- Getting the values and derivatives of the model variables ---
 
 //u
-vectorgradType ux = variable_list.get_vector_gradient(0);
+vectorgradType ux = variable_list.get_vector_gradient(1);
 
 // --- Setting the expressions for the terms in the governing equations ---
 
 vectorgradType eqx_u;
 
-scalarvalueType sfts[dim][dim];
+scalarvalueType dist, phi;
 
-scalarvalueType dist, a;
 
-// Radius of the inclusion
-a = constV(10.0);
+// Scaled distance from the center of the inclusion
+dist = std::sqrt((q_point_loc[0]-constV(center[0]))*(q_point_loc[0]-constV(center[0]))/semiaxes[0]/semiaxes[0]
+					+(q_point_loc[1]-constV(center[1]))*(q_point_loc[1]-constV(center[1]))/semiaxes[1]/semiaxes[1]
+					+(q_point_loc[2]-constV(center[2]))*(q_point_loc[2]-constV(center[2]))/semiaxes[2]/semiaxes[2]);
 
-// Distance from the center of the inclusion
-dist = std::sqrt((q_point_loc[0]-constV(0.0))*(q_point_loc[0]-constV(0.0))
-					+(q_point_loc[1]-constV(0.0))*(q_point_loc[1]-constV(0.0))
-					+(q_point_loc[2]-constV(0.0))*(q_point_loc[2]-constV(0.0)));
+phi = (0.5- 0.5*(1.0-std::exp(-20.0*(dist-constV(1.0))))/ (constV(1.0)+std::exp(-20.0*(dist-constV(1.0)))));
 
-// Calculation the stress-free transformation strain (the misfit)
-for (unsigned int i=0; i<dim; i++){
-	for (unsigned int j=0; j<dim; j++){
-		if (i == j){
-
-			sfts[i][j] = 0.01 * (0.5+ 0.5*( constV(1.0) - std::exp(-20.0*(dist-a)))/ (constV(1.0)+std::exp(-20.0*(dist-a))));
-
-		}
-		else {
-			sfts[i][j] = 0.0;
-		}
+for (unsigned int n=0; n < dist.n_array_elements; n++){
+	if (dist[n] < 1.0){
+		phi[n] = 1.0;
+	}
+	else{
+		phi[n] = 0.0;
 	}
 }
-
 
 //compute strain tensor
 dealii::VectorizedArray<double> E[dim][dim], S[dim][dim];
 for (unsigned int i=0; i<dim; i++){
 	for (unsigned int j=0; j<dim; j++){
-		E[i][j]= constV(0.5)*(ux[i][j]+ux[j][i])-sfts[i][j];
+		E[i][j]= constV(0.5)*(ux[i][j]+ux[j][i])-sfts[i][j]*phi;
 	}
 }
 
 //compute stress tensor
-computeStress<dim>(CIJ, E, S);
+computeStress<dim>(CIJ_matrix * (constV(1.0) - phi) + CIJ_ppt * phi, E, S);
 
 // The RHS term
 for (unsigned int i=0; i<dim; i++){
@@ -115,7 +137,7 @@ for (unsigned int i=0; i<dim; i++){
 
 // --- Submitting the terms for the governing equations ---
 
-variable_list.set_vector_gradient_term_RHS(0,eqx_u);
+variable_list.set_vector_gradient_term_RHS(1,eqx_u);
 
 }
 
@@ -140,11 +162,29 @@ void customPDE<dim,degree>::equationLHS(variableContainer<dim,degree,dealii::Vec
 // --- Getting the values and derivatives of the model variables ---
 
 //u
-vectorgradType ux = variable_list.get_change_in_vector_gradient(0);
+vectorgradType ux = variable_list.get_change_in_vector_gradient(1);
 
 // --- Setting the expressions for the terms in the governing equations ---
 
 vectorgradType eqx_Du;
+
+scalarvalueType dist, phi;
+
+// Scaled distance from the center of the inclusion
+dist = std::sqrt((q_point_loc[0]-constV(center[0]))*(q_point_loc[0]-constV(center[0]))/semiaxes[0]/semiaxes[0]
+					+(q_point_loc[1]-constV(center[1]))*(q_point_loc[1]-constV(center[1]))/semiaxes[1]/semiaxes[1]
+					+(q_point_loc[2]-constV(center[2]))*(q_point_loc[2]-constV(center[2]))/semiaxes[2]/semiaxes[2]);
+
+phi = (0.5- 0.5*(1.0-std::exp(-20.0*(dist-constV(1.0))))/ (constV(1.0)+std::exp(-20.0*(dist-constV(1.0)))));
+
+for (unsigned int n=0; n < dist.n_array_elements; n++){
+	if (dist[n] < 1.0){
+		phi[n] = 1.0;
+	}
+	else{
+		phi[n] = 0.0;
+	}
+}
 
 //compute strain tensor
 dealii::VectorizedArray<double> E[dim][dim], S[dim][dim];
@@ -155,7 +195,7 @@ for (unsigned int i=0; i<dim; i++){
 }
 
 //compute stress tensor
-computeStress<dim>(CIJ, E, S);
+computeStress<dim>(CIJ_matrix * (constV(1.0) - phi) + CIJ_ppt * phi, E, S);
 
 //compute the LHS term
 for (unsigned int i=0; i<dim; i++){
@@ -166,6 +206,6 @@ for (unsigned int i=0; i<dim; i++){
 
  // --- Submitting the terms for the governing equations ---
 
-variable_list.set_vector_gradient_term_LHS(0,eqx_Du);
+variable_list.set_vector_gradient_term_LHS(1,eqx_Du);
 
 }
