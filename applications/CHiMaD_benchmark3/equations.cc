@@ -69,6 +69,25 @@ scalarvalueType mu = variable_list.get_scalar_value(2);
 
 // --- Setting the expressions for the terms in the governing equations ---
 
+// Taken from the CHAC_anisotropy app
+// Calculation of interface normal vector
+scalarvalueType normgradn = std::sqrt(phix.norm_square());
+scalargradType normal = phix/(normgradn+constV(1.0e-16));
+
+// Calculation of anisotropy gamma
+scalarvalueType a;
+if (dim == 2){
+    a = 1.0+epsilonM*(4.0*(normal[0]*normal[0]*normal[0]*normal[0]+normal[1]*normal[1]*normal[1]*normal[1])-3.0);
+}
+else {
+    a = (1.0-3.0*epsilonM) * (1.0 + 4.0*epsilonM/(1.0-3.0*epsilonM) * (normal[0]*normal[0]*normal[0]*normal[0]+normal[1]*normal[1]*normal[1]*normal[1]+normal[2]*normal[2]*normal[2]*normal[2]));
+}
+
+scalarvalueType W = constV(W0)*a;
+scalarvalueType tau = a;
+
+
+/*
 // The azimuthal angle
 scalarvalueType theta;
 for (unsigned i=0; i< phi.n_array_elements;i++){
@@ -78,6 +97,7 @@ for (unsigned i=0; i< phi.n_array_elements;i++){
 // Anisotropic gradient energy coefficient, its derivative and square
 scalarvalueType W = constV(W0)*(constV(1.0)+constV(epsilonM)*std::cos(constV(mult)*(theta-constV(theta0))));
 scalarvalueType tau = W/constV(W0);
+*/
 
 // Define terms in the equations
 scalarvalueType eq_u = (u+constV(0.5)*mu*constV(userInputs.dtValue)/tau);
@@ -127,6 +147,36 @@ double lambda = (D/0.6267/W0/W0);
 // Derivative of the free energy density with respect to phi
 scalarvalueType f_phi = -(phi-constV(lambda)*u*(constV(1.0)-phi*phi))*(constV(1.0)-phi*phi);
 
+// Taken from the CHAC_anisotropy app
+// Calculation of interface normal vector
+scalarvalueType normgradn = std::sqrt(phix.norm_square());
+scalargradType normal = phix/(normgradn+constV(1.0e-16));
+
+// Calculation of anisotropy gamma
+scalarvalueType a;
+if (dim == 2){
+    a = 1.0+epsilonM*(4.0*(normal[0]*normal[0]*normal[0]*normal[0]+normal[1]*normal[1]*normal[1]*normal[1])-3.0);
+}
+else {
+    a = (1.0-3.0*epsilonM) * (1.0 + 4.0*epsilonM/(1.0-3.0*epsilonM) * (normal[0]*normal[0]*normal[0]*normal[0]+normal[1]*normal[1]*normal[1]*normal[1]+normal[2]*normal[2]*normal[2]*normal[2]));
+}
+
+scalarvalueType W = constV(W0)*a;
+scalarvalueType tau = a;
+scalargradType dW_dphix;
+dW_dphix[0] = 16.0 * epsilonM * phix[0] * (phix[0]*phix[0] * (phix[1]*phix[1]+phix[2]*phix[2])-phix[1]*phix[1]*phix[1]*phix[1]-phix[2]*phix[2]*phix[2]*phix[2]);
+dW_dphix[1] = 16.0 * epsilonM * phix[1] * (phix[1]*phix[1] * (phix[0]*phix[0]+phix[2]*phix[2])-phix[0]*phix[0]*phix[0]*phix[0]-phix[2]*phix[2]*phix[2]*phix[2]);
+dW_dphix[2] = 16.0 * epsilonM * phix[2] * (phix[2]*phix[2] * (phix[1]*phix[1]+phix[0]*phix[0])-phix[1]*phix[1]*phix[1]*phix[1]-phix[0]*phix[0]*phix[0]*phix[0]);
+
+dW_dphix /= ((phix[0]*phix[0]+phix[1]*phix[1]+phix[2]*phix[2])*(phix[0]*phix[0]+phix[1]*phix[1]+phix[2]*phix[2])*(phix[0]*phix[0]+phix[1]*phix[1]+phix[2]*phix[2]) +1e-14);
+
+// The anisotropy term that enters in to the  equation for mu
+scalargradType aniso;
+aniso[0] = W*W*phix[0]+W*(phix[0]*phix[0]+phix[1]*phix[1]+phix[2]*phix[2])*W0*dW_dphix[0];
+aniso[1] = W*W*phix[1]+W*(phix[0]*phix[0]+phix[1]*phix[1]+phix[2]*phix[2])*W0*dW_dphix[1];
+aniso[2] = W*W*phix[2]+W*(phix[0]*phix[0]+phix[1]*phix[1]+phix[2]*phix[2])*W0*dW_dphix[2];
+
+/*
 // The azimuthal angle
 scalarvalueType theta;
 for (unsigned i=0; i< phi.n_array_elements;i++){
@@ -138,10 +188,13 @@ scalarvalueType W = constV(W0)*(constV(1.0)+constV(epsilonM)*std::cos(constV(mul
 scalarvalueType W_theta = constV(-W0)*(constV(epsilonM)*constV(mult)*std::sin(constV(mult)*(theta-constV(theta0))));
 scalarvalueType tau = W/constV(W0);
 
+
 // The anisotropy term that enters in to the  equation for mu
 scalargradType aniso;
 aniso[0] = W*W*phix[0]-W*W_theta*phix[1];
 aniso[1] = W*W*phix[1]+W*W_theta*phix[0];
+
+*/
 
 // Define the terms in the equations
 scalarvalueType eq_mu = (-f_phi);
